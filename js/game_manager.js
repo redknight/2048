@@ -9,7 +9,7 @@ function GameManager(size, InputManager, Actuator, StorageManager) {
   this.inputManager.on("move", this.move.bind(this));
   this.inputManager.on("restart", this.restart.bind(this));
   this.inputManager.on("keepPlaying", this.keepPlaying.bind(this));
-
+  this.inputManager.on("cheat",this.cheat.bind(this));
   this.setup();
 }
 
@@ -20,6 +20,9 @@ GameManager.prototype.restart = function () {
   this.setup();
 };
 
+GameManager.prototype.cheat=function(){
+	this.cheatManager.doCheat();
+}
 // Keep playing after winning (allows going over 2048)
 GameManager.prototype.keepPlaying = function () {
   this.keepPlaying = true;
@@ -43,6 +46,8 @@ GameManager.prototype.setup = function () {
     this.over        = previousState.over;
     this.won         = previousState.won;
     this.keepPlaying = previousState.keepPlaying;
+    this.cheatManager=new CheatManager(this.grid,this,previousState.cheat);
+
   } else {
     this.grid        = new Grid(this.size);
     this.score       = 0;
@@ -51,11 +56,13 @@ GameManager.prototype.setup = function () {
     this.keepPlaying = false;
 
     // Add the initial tiles
+    this.cheatManager=new CheatManager(this.grid,this);
     this.addStartTiles();
   }
-
+  window.bn=this.cheatManager;
   // Update the actuator
   this.actuate();
+  
 };
 
 // Set up the initial tiles to start the game with
@@ -93,6 +100,7 @@ GameManager.prototype.actuate = function () {
     over:       this.over,
     won:        this.won,
     bestScore:  this.storageManager.getBestScore(),
+    cheatCount: this.cheatManager.getCount(),
     terminated: this.isGameTerminated()
   });
 
@@ -105,6 +113,7 @@ GameManager.prototype.serialize = function () {
     score:       this.score,
     over:        this.over,
     won:         this.won,
+    cheat:	 this.cheatManager.getCount(),
     keepPlaying: this.keepPlaying
   };
 };
@@ -167,6 +176,8 @@ GameManager.prototype.move = function (direction) {
           self.score += merged.value;
 
           // The mighty 2048 tile
+	  if(merged.value==512)
+		  self.cheatManager.addCount();
           if (merged.value === 2048) self.won = true;
         } else {
           self.moveTile(tile, positions.farthest);

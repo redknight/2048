@@ -3,7 +3,7 @@ function HTMLActuator() {
   this.scoreContainer   = document.querySelector(".score-container");
   this.bestContainer    = document.querySelector(".best-container");
   this.messageContainer = document.querySelector(".game-message");
-
+  this.cheatContainer   = document.querySelector(".cheat-container");
   this.score = 0;
 }
 
@@ -23,7 +23,8 @@ HTMLActuator.prototype.actuate = function (grid, metadata) {
 
     self.updateScore(metadata.score);
     self.updateBestScore(metadata.bestScore);
-
+    self.updateCheatCount(metadata.cheatCount);
+    
     if (metadata.terminated) {
       if (metadata.over) {
         self.message(false); // You lose
@@ -85,9 +86,12 @@ HTMLActuator.prototype.addTile = function (tile) {
 
   // Add the inner part of the tile to the wrapper
   wrapper.appendChild(inner);
-
+  inner.addEventListener("click",function(){
+	  bn.click(inner,tile);//console.log("click",this,inner,wrapper,position,tile);
+  });
   // Put the tile on the board
   this.tileContainer.appendChild(wrapper);
+  
 };
 
 HTMLActuator.prototype.applyClasses = function (element, classes) {
@@ -123,6 +127,11 @@ HTMLActuator.prototype.updateScore = function (score) {
 HTMLActuator.prototype.updateBestScore = function (bestScore) {
   this.bestContainer.textContent = bestScore;
 };
+
+HTMLActuator.prototype.updateCheatCount = function (cheatCount) {
+  this.cheatContainer.textContent = cheatCount;
+};
+
 
 HTMLActuator.prototype.message = function (won) {
   var type    = won ? "game-won" : "game-over";
